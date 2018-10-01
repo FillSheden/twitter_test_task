@@ -10,4 +10,9 @@ return [
             'class' => 'yii\caching\FileCache',
         ],
     ],
+    'controllerMap' => [
+        'migration' => [
+            'class' => 'bizley\migration\controllers\MigrationController',
+        ],
+    ],
 ];

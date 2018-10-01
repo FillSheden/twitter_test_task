@@ -1,23 +1,38 @@
 <?php
 namespace frontend\controllers;
 
+
+use common\models\TwitterUsers;
 use Yii;
 use yii\base\InvalidParamException;
-use yii\web\BadRequestHttpException;
 use yii\web\Controller;
+use yii\web\BadRequestHttpException;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
-use common\models\LoginForm;
-use frontend\models\PasswordResetRequestForm;
-use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
-use frontend\models\ContactForm;
+use frontend\models\ResetPasswordForm;
+use frontend\models\PasswordResetRequestForm;
+use common\models\LoginForm;
+use common\shop\services\TwitterService;
+use common\shop\forms\TwitterUserCreatingForm;
+use common\shop\repositories\TwitterUserRepository;
 
 /**
  * Site controller
  */
 class SiteController extends Controller
 {
+
+    private $twitterService;
+    private $twitterUserRepository;
+
+    public function __construct($id, $module, array $config = [])
+    {
+        $this->twitterService = new TwitterService;
+        $this->twitterUserRepository = new TwitterUserRepository;
+        parent::__construct($id, $module, $config);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -72,7 +87,58 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $twitterUserCreatingForm = new TwitterUserCreatingForm;
+        $dataProvider = $this->twitterUserRepository->getProviderUsers();
+        return $this->render('index', compact('twitterUserCreatingForm', 'dataProvider'));
+    }
+
+    public function actionSaveTwitterUser()
+    {
+        $twitterUserCreatingForm = new TwitterUserCreatingForm;
+        if ($twitterUserCreatingForm->load(Yii::$app->request->post()) and $twitterUserCreatingForm->validate()) {
+            if ($this->twitterUserRepository->trySaveUser($twitterUserCreatingForm)) {
+                Yii::$app->session->setFlash('twitter-user-creating', 'User created!');
+            } else {
+                Yii::$app->session->setFlash('twitter-user-creating', 'Error creating!');
+            }
+        } return $this->redirect(['index']);
+    }
+
+    /**
+     * @param $id
+     * @return string
+     * @throws \Exception
+     */
+    public function actionShow($id)
+    {
+        $user_screen_name = $this->twitterUserRepository->getUserScreenName($id);
+        if ($user_tweets = $this->twitterService->getUserTimeLine($user_screen_name) and !isset($user_tweets->error)) {
+            return $this->render('show', [
+                'id' => $id,
+                'user_tweets' => $user_tweets,
+                'user_name' => $user_screen_name
+            ]);
+        } else {
+            Yii::$app->session->setFlash('user_tweet_empty', 'User have not tweets yet!');
+            return $this->redirect(['index']);
+        }
+    }
+
+    /**
+     * @param $id
+     * @return \yii\web\Response
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionDelete($id)
+    {
+        if ($deleting_user = TwitterUsers::findOne(['id', $id])) {
+            if ($deleting_user->delete()) {
+                Yii::$app->session->setFlash('user_tweet_deleting', 'Success user deleting!');
+            }
+        } else {
+            Yii::$app->session->setFlash('user_tweet_deleting', 'Error user deleting!');
+        } return $this->redirect(['index']);
     }
 
     /**
@@ -108,39 +174,6 @@ class SiteController extends Controller
         Yii::$app->user->logout();
 
         return $this->goHome();
-    }
-
-    /**
-     * Displays contact page.
-     *
-     * @return mixed
-     */
-    public function actionContact()
-    {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            if ($model->sendEmail(Yii::$app->params['adminEmail'])) {
-                Yii::$app->session->setFlash('success', 'Thank you for contacting us. We will respond to you as soon as possible.');
-            } else {
-                Yii::$app->session->setFlash('error', 'There was an error sending your message.');
-            }
-
-            return $this->refresh();
-        } else {
-            return $this->render('contact', [
-                'model' => $model,
-            ]);
-        }
-    }
-
-    /**
-     * Displays about page.
-     *
-     * @return mixed
-     */
-    public function actionAbout()
-    {
-        return $this->render('about');
     }
 
     /**

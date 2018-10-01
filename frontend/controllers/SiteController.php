@@ -2,7 +2,6 @@
 namespace frontend\controllers;
 
 
-use common\models\TwitterUsers;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\web\Controller;
@@ -13,6 +12,7 @@ use frontend\models\SignupForm;
 use frontend\models\ResetPasswordForm;
 use frontend\models\PasswordResetRequestForm;
 use common\models\LoginForm;
+use common\models\TwitterUsers;
 use common\shop\services\TwitterService;
 use common\shop\forms\TwitterUserCreatingForm;
 use common\shop\repositories\TwitterUserRepository;
@@ -112,7 +112,7 @@ class SiteController extends Controller
     public function actionShow($id)
     {
         $user_screen_name = $this->twitterUserRepository->getUserScreenName($id);
-        if ($user_tweets = $this->twitterService->getUserTimeLine($user_screen_name) and !isset($user_tweets->error)) {
+        if ($user_tweets = $this->twitterService->getUserTimeLine($user_screen_name) and !isset($user_tweets->errors)) {
             return $this->render('show', [
                 'id' => $id,
                 'user_tweets' => $user_tweets,

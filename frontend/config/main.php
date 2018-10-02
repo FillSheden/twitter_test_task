@@ -43,5 +43,25 @@ return [
             ],
         ],
     ],
+    'modules' => [
+        'gridview' =>  [
+            'class' => '\kartik\grid\Module'
+        ]
+    ],
     'params' => $params,
+    'as access' => [
+        'class' => 'yii\filters\AccessControl',
+        'except' => ['site/login', 'frontend/gii', 'site/request-password-reset-token ',
+            'site/request-password-reset', 'site/reset-password'],
+        'denyCallback' => function($rule, $action) {
+            Yii::$app->user->logout();
+            return $action->controller->redirect(['site/login']);
+        },
+        'rules' => [
+            [
+                'allow' => true,
+                'roles' => ['@'],
+            ],
+        ],
+    ],
 ];

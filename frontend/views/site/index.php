@@ -2,52 +2,92 @@
 
 /* @var $this yii\web\View */
 
-$this->title = 'My Yii Application';
+use yii\widgets\ActiveForm;
+use yii\helpers\Html;
+use kartik\grid\GridView;
+use common\shop\services\AlertService;
+
+$this->title = 'Twitter app';
+
+AlertService::printSessionMessage('twitter-user-creating');
+AlertService::printSessionMessage('user_tweet_deleting');
+AlertService::printSessionMessage('user_tweet_empty');
 ?>
 <div class="site-index">
 
     <div class="jumbotron">
-        <h1>Congratulations!</h1>
-
-        <p class="lead">You have successfully created your Yii-powered application.</p>
-
-        <p><a class="btn btn-lg btn-success" href="http://www.yiiframework.com">Get started with Yii</a></p>
+        <h1>Welcome to Sheden Twitter app!</h1>
     </div>
 
-    <div class="body-content">
+    <div class="form" style="background-color: #c8e5bc; height: 30%">
+        <div class="form-fields" style="margin: 20px 20px 20px 20px">
 
-        <div class="row">
-            <div class="col-lg-4">
-                <h2>Heading</h2>
+            <div class="fields" style="padding-top: 20px">
+                <?php
+                $form = ActiveForm::begin([
+                    'options' => ['id' => 'twitterUserCreatingForm'],
+                    'action' => ['save-twitter-user'],
+                    'method' => 'post',
+                ]); ?>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
+                <?= $form->field($twitterUserCreatingForm, 'name', [
+                    'options' => ['class' => 'form__element-box input-field']
+                ])
+                    ->textInput(['class' => 'form__element', 'type' => 'text'])
+                    ->label('User twitter-name', ['class' => 'form__label'])
+                    ->error(['class' => 'help-block help-block-error form__error']); ?>
 
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
+                <?php
+                $statuses = ['1' => 'active', '0' => 'non-active'];
+                $params = ['prompt' => 'choose user status...'];
+                ?>
+
+                <?= $form->field($twitterUserCreatingForm, 'is_active')
+                    ->dropDownList($statuses)
+                    ->label('User status'); ?>
             </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
+            <div class="form__element-box">
+                <?= Html::submitButton('Сохранить', ['class' => 'btn btn--success']) ?>
             </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
+            <?php $form = ActiveForm::end(); ?>
         </div>
+    </div>
 
+    <div class="grid" style="margin-top: 30px">
+        <?= GridView::widget([
+            'dataProvider' => $dataProvider,
+            'columns' => [
+                [
+                    'attribute' => 'name',
+                    'label' => 'Name',
+                    'value' => function ($model) {
+                        return $model->name;
+                    },
+                ],
+                [
+                    'attribute' => 'created',
+                    'label' => 'created',
+                    'value' => function ($model) {
+                        return $model->created;
+                    },
+                ],
+                [
+                    'class' => 'yii\grid\ActionColumn',
+                    'template' => '{accept}{delete}',
+                    'header' => 'user tweets',
+                    'buttons' => [
+                        'accept' => function ($url, $model, $key) {
+                            return Html::a(' Tweets', ['show', 'id' => $model->id], ['class'=>'btn btn-info'] );
+                        },
+                        'delete' => function ($url, $model, $key) {
+                            return Html::a('delete', ['delete', 'id' => $model->id], ['class'=>'btn btn-danger']);
+                        },
+                    ],
+                ],
+            ],
+        ]); ?>
+        <?= Html::endForm();?>
     </div>
 </div>

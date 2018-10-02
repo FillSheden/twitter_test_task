@@ -70,7 +70,7 @@ AppAsset::register($this);
 <footer class="footer">
     <div class="container">
         <p class="pull-left">&copy; Twitter app <?= date('Y') ?></p>
-        <p class="pull-right"> Sorry for the front-end :D</p>
+        <p class="pull-right"> Sorry for my front-end :D</p>
     </div>
 </footer>
 

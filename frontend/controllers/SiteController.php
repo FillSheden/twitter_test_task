@@ -12,6 +12,7 @@ use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
 use frontend\models\ContactForm;
+use Abraham\TwitterOAuth\TwitterOAuth;
 
 /**
  * Site controller
@@ -72,6 +73,18 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+        $consumer = 'y1CqP1mnB5o2IqOcPIyOJp771';
+        $consumer_secret = '55Je2krMfZg9NLzUx7FxfoY6byKwf3y0qWsLYmIq0ykQ2kKjjo';
+        $token = '885735830584791040-iqAW6v8tyRsFMixIonxty7lAWDzb9kO';
+        $token_secret = 'Y0wORyySZFnGMwPvszZTtNaPul0BUba9wEdcmo1cH19kz';
+        $connection = new TwitterOAuth($consumer, $consumer_secret, $token, $token_secret);
+
+        $statuses = $connection->get("statuses/home_timeline", ["count" => 25, "exclude_replies" => true]);
+
+        echo '<pre>';
+        print_r($statuses);
+        echo '</pre>';
+        die;
         return $this->render('index');
     }
 
